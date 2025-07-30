@@ -1,5 +1,5 @@
 ﻿
-namespace studyBuddy.Core.Services
+namespace studyBuddy.Core.Services.Embedding
 {
     public interface IEmbeddingService
     {

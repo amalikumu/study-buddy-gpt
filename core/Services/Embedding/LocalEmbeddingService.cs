@@ -6,7 +6,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace studyBuddy.Core.Services
+namespace studyBuddy.Core.Services.Embedding
 {
     public class LocalEmbeddingService : IEmbeddingService
     {

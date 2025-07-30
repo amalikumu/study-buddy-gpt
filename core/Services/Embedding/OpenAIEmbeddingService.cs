@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace studyBuddy.Core.Services
+namespace studyBuddy.Core.Services.Embedding
 {
     public class OpenAIEmbeddingService: IEmbeddingService
     {
