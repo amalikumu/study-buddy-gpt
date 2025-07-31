@@ -1,7 +1,6 @@
 # study-buddy-gpt
 
 
-
 Embedding Server Setup 
 
 ----------------------
@@ -28,29 +27,23 @@ Step 2: Run the server
 
 
 
-
-
 Vector Database Setup
-
 ---------------------
 
 Qdrant is running locally on Docker. 
 
 
-
-
-
 Step 1: Install Docker
 
-
-
 Step 2: Run Qdrant Container
+	docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+	(use the command "docker run -d -p 6333:6333 -p 6334:6334 qdrant/qdrant" to run in background mode)
 
 
+LLM Setup
+----------
+Ollama needs to be running locally.
 
-docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
-
-
-
-(use the command "docker run -d -p 6333:6333 -p 6334:6334 qdrant/qdrant" to run in background mode)
+Step 1: Setup Ollama
+1. Install Ollama (https://ollama.com)
 

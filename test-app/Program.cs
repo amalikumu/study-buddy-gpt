@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using studyBuddy.Core.Services;
 using studyBuddy.Core.Services.Embedding;
+using studyBuddy.Core.Services.LLM;
 using studyBuddy.Core.Services.VectorStorage;
 using studyBuddy.DocumentChunker;
 
@@ -11,7 +12,8 @@ var builder = new ConfigurationBuilder()
 var config = builder.Build();
 
 var embeddingService = new LocalEmbeddingService();
-var qdrant = new QdrantVectorStorage("http://localhost:6333", "Profiles2");
+var qdrantStorage = new QdrantVectorStorage("http://localhost:6333", "Profiles2");
+var llm = new OllamaService();
 
 Console.WriteLine ("Welcome to the Study Buddy GPT!");
 Console.WriteLine("Do you want to 1. Upload Content or 2. Search!");
@@ -42,7 +44,7 @@ if (choice == "1")
         var text = extractor.ExtractText(filePath);
         var chunks = TextChunker.ChunkTextBySentences(text, maxCharsPerChunk: 1000);
 
-        await qdrant.CreateCollectionAsync(384); // Once only
+        await qdrantStorage.CreateCollectionAsync(384); // Once only
 
 
         int i = 1;
@@ -61,7 +63,7 @@ if (choice == "1")
             }
             };
 
-            await qdrant.UpsertPointsAsync(new List<VectorPoint> { point });
+            await qdrantStorage.UpsertPointsAsync(new List<VectorPoint> { point });
             i++;
         }
     }
@@ -83,12 +85,13 @@ else if (choice == "2")
     try
     {
         var queryEmbedding = await embeddingService.GetEmbeddingAsync(query);
-        var results = await qdrant.SearchAsync(queryEmbedding.ToArray(), topK: 5);
-        Console.WriteLine("Search Results:");
-        foreach (var result in results)
-        {
-            Console.WriteLine(result);
-        }
+        var results = await qdrantStorage.SearchAsync(queryEmbedding.ToArray(), topK: 5);
+
+        string context = string.Join("\n\n", results); // combine top n chunks
+
+        string answer = await llm.GetAnswerAsync(context, query);
+        Console.WriteLine("AI Answer:");
+        Console.WriteLine(answer);
     }
     catch (Exception ex)
     {
