@@ -4,17 +4,20 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace studyBuddy.Core.Services.LLM
 {
     public class OllamaService: ILlmService
     {
         private readonly HttpClient _httpClient;
+        private readonly OllamaOptions _options;
 
-        public OllamaService()
+        public OllamaService(IOptions<OllamaOptions> options)
         {
+            _options = options.Value;
             _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("http://localhost:11434");
+            _httpClient.BaseAddress = new Uri(_options.BaseAddress);
         }
 
         public async Task<string> GetAnswerAsync(string context, string question)
@@ -23,7 +26,7 @@ namespace studyBuddy.Core.Services.LLM
 
             var request = new OllamaRequest
             {
-                Model = "tinyllama",//"mistral",
+                Model = _options.Model,
                 Prompt = prompt,
                 Stream = false
             };

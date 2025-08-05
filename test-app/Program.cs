@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using studyBuddy.Core.Services;
 using studyBuddy.Core.Services.Embedding;
 using studyBuddy.Core.Services.LLM;
@@ -11,9 +13,16 @@ var builder = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: false);
 var config = builder.Build();
 
-var embeddingService = new LocalEmbeddingService();
-var qdrantStorage = new QdrantVectorStorage("http://localhost:6333", "Books");
-var llm = new OllamaService();
+var services = new ServiceCollection();
+services.Configure<OllamaOptions>(config.GetSection("Ollama"));
+services.AddSingleton<ILlmService, OllamaService>();
+services.AddSingleton<IEmbeddingService, LocalEmbeddingService>();
+services.AddSingleton<IVectorStorageService>(sp => new QdrantVectorStorage("http://localhost:6333", "Books"));
+var provider = services.BuildServiceProvider();
+
+var embeddingService = provider.GetRequiredService<IEmbeddingService>();
+var qdrantStorage = provider.GetRequiredService<IVectorStorageService>() as QdrantVectorStorage;
+var llm = provider.GetRequiredService<ILlmService>();
 
 Console.WriteLine ("Welcome to the Study Buddy GPT!");
 Console.WriteLine("Do you want to 1. Upload Content or 2. Search!");
