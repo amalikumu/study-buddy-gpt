@@ -21,7 +21,7 @@ Step 1: Python Environment
 Step 2: Run the server
 
 1. Navigate to "embed-server-scripts"
-2. Run the script (uvicorn embed\_server:app --host 127.0.0.1 --port 8000)
+2. Run the script (uvicorn embed_server:app --host 127.0.0.1 --port 8000)
 
 
 
@@ -46,4 +46,6 @@ Ollama needs to be running locally.
 
 Step 1: Setup Ollama
 1. Install Ollama (https://ollama.com)
+2. Pull a model (e.g. Mistral or Llama3) (ollama pull mistral
+3. Run the model locally (ollama run mistral)
 

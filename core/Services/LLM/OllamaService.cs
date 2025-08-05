@@ -23,7 +23,7 @@ namespace studyBuddy.Core.Services.LLM
 
             var request = new OllamaRequest
             {
-                Model = "mistral",
+                Model = "tinyllama",//"mistral",
                 Prompt = prompt,
                 Stream = false
             };
@@ -35,7 +35,20 @@ namespace studyBuddy.Core.Services.LLM
                 throw new Exception($"Ollama returned {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
             }
 
-            var result = await response.Content.ReadFromJsonAsync<OllamaResponse>();
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(stream);
+            var responseBuilder = new StringBuilder();
+            string? line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                responseBuilder.AppendLine(line);
+            }
+            var responseString = responseBuilder.ToString();
+            var result = System.Text.Json.JsonSerializer.Deserialize<OllamaResponse>(responseString);
+            if (result.Equals(prompt))
+            {
+                Console.WriteLine("something wrong");
+            }
             return result?.Response ?? "No answer generated.";
         }
     }

@@ -12,7 +12,7 @@ var builder = new ConfigurationBuilder()
 var config = builder.Build();
 
 var embeddingService = new LocalEmbeddingService();
-var qdrantStorage = new QdrantVectorStorage("http://localhost:6333", "Profiles2");
+var qdrantStorage = new QdrantVectorStorage("http://localhost:6333", "Books");
 var llm = new OllamaService();
 
 Console.WriteLine ("Welcome to the Study Buddy GPT!");
@@ -42,7 +42,7 @@ if (choice == "1")
         var file = new FileInfo(filePath);
         var extractor = TextExtractorFactory.CreateExtractor(filePath);
         var text = extractor.ExtractText(filePath);
-        var chunks = TextChunker.ChunkTextBySentences(text, maxCharsPerChunk: 1000);
+        var chunks = TextChunker.ChunkTextBySentences(text, maxCharsPerChunk: 200);
 
         await qdrantStorage.CreateCollectionAsync(384); // Once only
 
@@ -74,27 +74,28 @@ if (choice == "1")
 }
 else if (choice == "2")
 {
-    // Search input
-    Console.WriteLine("Enter your search query:");
-    var query = Console.ReadLine();
-    if (string.IsNullOrWhiteSpace(query))
-    {
-        Console.WriteLine("Invalid search query.");
-        return;
+    while(true)
+    {   // Search input
+        Console.WriteLine("Enter your search query:");
+        var query = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            Console.WriteLine("Invalid search query.");
+            break;
+        }
+        try
+        {
+            var queryEmbedding = await embeddingService.GetEmbeddingAsync(query);
+            var results = await qdrantStorage.SearchAsync(queryEmbedding.ToArray(), topK: 3);
+            string context = string.Join("\n\n", results); // combine top n chunks
+            string answer = await llm.GetAnswerAsync(context, query);
+            Console.WriteLine("AI Answer:");
+            Console.WriteLine(answer);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error: {ex.Message}");
+        }
     }
-    try
-    {
-        var queryEmbedding = await embeddingService.GetEmbeddingAsync(query);
-        var results = await qdrantStorage.SearchAsync(queryEmbedding.ToArray(), topK: 5);
-
-        string context = string.Join("\n\n", results); // combine top n chunks
-
-        string answer = await llm.GetAnswerAsync(context, query);
-        Console.WriteLine("AI Answer:");
-        Console.WriteLine(answer);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"❌ Error: {ex.Message}");
-    }
+    Console.WriteLine("Thank You");
 }
